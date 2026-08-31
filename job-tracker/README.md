@@ -110,15 +110,57 @@ If you want this to keep running even when your laptop is off, the next
 step up is a scheduled GitHub Actions workflow — worth doing once this
 version has been running reliably for you locally.
 
+## Scoring and the email digest (Stage 3)
+
+Every lead `fetch_jobs.py` inserts gets a numeric `score` so the best
+matches surface first — the tracker sorts New Leads to the top, best
+score first, automatically.
+
+The formula is deliberately simple and readable in `score_posting()`
+(`fetch_jobs.py`): the title is checked against three keyword tiers, each
+match adds points (higher tier = closer to what you actually want),
+plus a bonus if the company has a *verified* positive sponsorship
+finding:
+- High priority (+3 each): `trading`, `trader`, `quant`, `sales`
+- Medium priority (+2 each): `product manager`, `marketing`, `operations`, `research`, `strategy`, `growth`, `brand`
+- Low priority (+1 each): `analyst`, `intern`, `associate`
+- Verified sponsorship bonus: +3 (Plaid, Brex) or +2 (Coinbase) — see the sponsorship section above
+
+A title can match more than one tier and stack (e.g. "Quantitative
+Trading Analyst Intern" scores 3+1+1 = 5), and the weights are just
+numbers in the source — change them if a different function should
+outrank the rest for you.
+
+`send_digest.py` emails yourself the leads that showed up since your last
+digest, best score first, then marks them so tomorrow's digest doesn't
+repeat them. Set it up:
+
+1. Turn on 2-Step Verification on your Google account, then generate an
+   App Password at https://myaccount.google.com/apppasswords
+2. Copy `.env.example` to `.env` and fill in your Gmail address and that
+   app password. `.env` is gitignored — never commit it.
+3. Run it: `python send_digest.py`
+
+`run_fetch.sh` already calls both `fetch_jobs.py` and `send_digest.py` in
+sequence, so once it's scheduled (see above) you get the full loop for
+free: pull new postings → score them → email yourself the new ones →
+mark them sent, with zero manual steps once it's running. No `.env`? It
+prints a clear message and skips the email rather than failing the whole
+run.
+
 ## How it's built
 
-- `app.py` — the Flask server: routes for viewing, adding, updating status, and deleting applications
+- `app.py` — the Flask server: routes for viewing, adding, updating status, and deleting applications; sorts New Leads to the top by score
 - `templates/index.html` — the page itself (a form + a table), using Jinja2 to loop over your data
-- `fetch_jobs.py` — standalone script that fetches postings and inserts new leads
-- `run_fetch.sh` — wrapper for scheduled runs; logs each run to `fetch_log.txt`
+- `fetch_jobs.py` — fetches postings, scores them, inserts new leads
+- `send_digest.py` — emails a digest of leads not yet notified about, then marks them sent
+- `run_fetch.sh` — wrapper for scheduled runs; runs both scripts, logs each run to `fetch_log.txt`
+- `.env` / `.env.example` — your email credentials (never committed) / the template for them
 - `tracker.db` / `fetch_log.txt` — your data and run history, stored locally (not committed to git)
 
-## What's next (Stage 3)
+## What's next
 
-Score incoming leads by how well they match your criteria, and email
-yourself a daily digest of just the top matches.
+Ideas for a Stage 4, if you want to keep going: a "sponsor confidence"
+badge computed automatically instead of hand-written per company, a
+weekly summary instead of (or alongside) the daily digest, or letting
+the score weights be edited from the web UI instead of the source file.

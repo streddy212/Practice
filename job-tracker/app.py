@@ -38,22 +38,32 @@ def init_db():
                 date_applied TEXT,
                 follow_up_date TEXT,
                 notes TEXT,
-                url TEXT
+                url TEXT,
+                score INTEGER,
+                notified_at TEXT
             )
             """
         )
-        # Migration for anyone who ran Stage 1 before the `url` column existed.
-        try:
-            db.execute("ALTER TABLE applications ADD COLUMN url TEXT")
-        except sqlite3.OperationalError:
-            pass  # column already exists
+        # Migrations for anyone who ran an earlier stage before these columns existed.
+        for column, coltype in [("url", "TEXT"), ("score", "INTEGER"), ("notified_at", "TEXT")]:
+            try:
+                db.execute(f"ALTER TABLE applications ADD COLUMN {column} {coltype}")
+            except sqlite3.OperationalError:
+                pass  # column already exists
 
 
 @app.route("/")
 def index():
     db = get_db()
     rows = db.execute(
-        "SELECT * FROM applications ORDER BY date_applied DESC, id DESC"
+        """
+        SELECT * FROM applications
+        ORDER BY
+            CASE WHEN status = 'New Lead' THEN 0 ELSE 1 END,
+            score DESC,
+            date_applied DESC,
+            id DESC
+        """
     ).fetchall()
     today = date.today().isoformat()
     return render_template(

@@ -43,11 +43,11 @@ SOURCES = [
     {"company": "Messari", "platform": "greenhouse", "token": "messari"},
     {"company": "Alpaca", "platform": "greenhouse", "token": "alpaca"},
     {
-        "company": "Plaid", "platform": "lever", "token": "plaid",
+        "company": "Plaid", "platform": "lever", "token": "plaid", "sponsor_score": 3,
         "visa_note": "F-1 CPT/OPT explicitly accepted for the internship; company states no immigration (H-1B) sponsorship promised",
     },
     {
-        "company": "Brex", "platform": "greenhouse", "token": "brex",
+        "company": "Brex", "platform": "greenhouse", "token": "brex", "sponsor_score": 3,
         "visa_note": "F-1 CPT/OPT explicitly accepted, international students encouraged to apply; verified H-1B sponsor for full-time roles",
     },
     {"company": "Public", "platform": "greenhouse", "token": "public"},
@@ -59,7 +59,7 @@ SOURCES = [
     {"company": "FalconX", "platform": "greenhouse", "token": "falconx"},
     {"company": "Carta", "platform": "greenhouse", "token": "carta"},
     {
-        "company": "Coinbase", "platform": "greenhouse", "token": "coinbase",
+        "company": "Coinbase", "platform": "greenhouse", "token": "coinbase", "sponsor_score": 2,
         "visa_note": "Internship visa sponsorship available for some roles, subject to approval, covers internship duration only",
     },
     {"company": "DRW", "platform": "greenhouse", "token": "drweng"},
@@ -76,11 +76,14 @@ SOURCES = [
     {"company": "Robinhood", "platform": "greenhouse", "token": "robinhood"},
 ]
 
-# Matched case-insensitively against each posting's title.
-KEYWORDS = [
-    "trading", "trader", "sales", "quant", "analyst", "intern", "research", "associate",
-    "marketing", "operations", "product manager", "growth", "strategy", "brand",
-]
+# Matched case-insensitively against each posting's title. Also drives
+# scoring below -- a title matching a higher tier scores higher, since it's
+# a closer match to what you're actually after (sales & trading) versus a
+# generic adjacent role.
+HIGH_PRIORITY_KEYWORDS = ["trading", "trader", "quant", "sales"]
+MEDIUM_PRIORITY_KEYWORDS = ["product manager", "marketing", "operations", "research", "strategy", "growth", "brand"]
+LOW_PRIORITY_KEYWORDS = ["analyst", "intern", "associate"]
+KEYWORDS = HIGH_PRIORITY_KEYWORDS + MEDIUM_PRIORITY_KEYWORDS + LOW_PRIORITY_KEYWORDS
 
 REQUEST_TIMEOUT = 15
 
@@ -113,6 +116,18 @@ def matches_keywords(title: str) -> bool:
     return any(keyword.lower() in title_lower for keyword in KEYWORDS)
 
 
+def score_posting(title: str, source: dict) -> int:
+    """Higher = closer match. Keyword tier match (+3/+2/+1 per hit, can
+    stack across tiers) plus a bonus for verified sponsorship info."""
+    title_lower = title.lower()
+    score = 0
+    score += 3 * sum(1 for kw in HIGH_PRIORITY_KEYWORDS if kw in title_lower)
+    score += 2 * sum(1 for kw in MEDIUM_PRIORITY_KEYWORDS if kw in title_lower)
+    score += 1 * sum(1 for kw in LOW_PRIORITY_KEYWORDS if kw in title_lower)
+    score += source.get("sponsor_score", 0)
+    return score
+
+
 def already_tracked(db: sqlite3.Connection, url: str) -> bool:
     row = db.execute("SELECT 1 FROM applications WHERE url = ?", (url,)).fetchone()
     return row is not None
@@ -142,12 +157,13 @@ def main() -> None:
         for posting in matched:
             if already_tracked(db, posting["url"]):
                 continue
+            score = score_posting(posting["title"], source)
             db.execute(
                 """
-                INSERT INTO applications (company, role, source, status, url, notes)
-                VALUES (?, ?, ?, 'New Lead', ?, ?)
+                INSERT INTO applications (company, role, source, status, url, notes, score)
+                VALUES (?, ?, ?, 'New Lead', ?, ?, ?)
                 """,
-                (source["company"], posting["title"], f"{source['company']} ({source['platform']})", posting["url"], visa_note),
+                (source["company"], posting["title"], f"{source['company']} ({source['platform']})", posting["url"], visa_note, score),
             )
             added += 1
 

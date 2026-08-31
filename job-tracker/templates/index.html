@@ -16,6 +16,7 @@
     th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid #eee; font-size: 0.9rem; vertical-align: top; }
     th { color: #666; font-weight: 600; }
     tr.due-followup { background: #fff6e0; }
+    tr.new-lead { background: #eaf3ff; }
     select.status { padding: 0.25rem; }
     .del-btn { background: none; border: none; color: #b33; cursor: pointer; font-size: 0.85rem; }
     .empty { color: #888; padding: 2rem 0; text-align: center; }
@@ -45,7 +46,7 @@
     <label>Status
       <select name="status">
         {% for s in statuses %}
-        <option value="{{ s }}">{{ s }}</option>
+        <option value="{{ s }}" {{ 'selected' if s == 'Applied' else '' }}>{{ s }}</option>
         {% endfor %}
       </select>
     </label>
@@ -54,6 +55,9 @@
     </label>
     <label>Follow up by
       <input type="date" name="follow_up_date">
+    </label>
+    <label>Posting link
+      <input type="url" name="url" placeholder="https://...">
     </label>
     <label class="full">Notes
       <textarea name="notes" rows="2"></textarea>
@@ -66,12 +70,13 @@
     <thead>
       <tr>
         <th>Company</th><th>Role</th><th>Source</th><th>Visa</th><th>Status</th>
-        <th>Applied</th><th>Follow up</th><th>Notes</th><th></th>
+        <th>Applied</th><th>Follow up</th><th>Notes</th><th>Link</th><th></th>
       </tr>
     </thead>
     <tbody>
       {% for a in applications %}
-      <tr class="{{ 'due-followup' if a.follow_up_date and a.follow_up_date <= today else '' }}">
+      {% set row_class = 'new-lead' if a.status == 'New Lead' else ('due-followup' if a.follow_up_date and a.follow_up_date <= today else '') %}
+      <tr class="{{ row_class }}">
         <td>{{ a.company }}</td>
         <td>{{ a.role }}</td>
         <td>{{ a.source }}</td>
@@ -87,7 +92,8 @@
         </td>
         <td>{{ a.date_applied or '' }}</td>
         <td>{{ a.follow_up_date or '' }}</td>
-        <td>{{ a.notes }}</td>
+        <td>{{ a.notes or '' }}</td>
+        <td>{% if a.url %}<a href="{{ a.url }}" target="_blank" rel="noopener">view &#8599;</a>{% endif %}</td>
         <td>
           <form action="{{ url_for('delete', app_id=a.id) }}" method="post" onsubmit="return confirm('Delete this application?')">
             <button class="del-btn" type="submit">delete</button>

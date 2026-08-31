@@ -5,7 +5,7 @@ from pathlib import Path
 from flask import Flask, g, redirect, render_template, request, url_for
 
 DB_PATH = Path(__file__).parent / "tracker.db"
-STATUSES = ["Applied", "OA / Assessment", "Interview", "Offer", "Rejected", "Ghosted"]
+STATUSES = ["New Lead", "Applied", "OA / Assessment", "Interview", "Offer", "Rejected", "Ghosted"]
 
 app = Flask(__name__)
 
@@ -37,10 +37,16 @@ def init_db():
                 status TEXT NOT NULL DEFAULT 'Applied',
                 date_applied TEXT,
                 follow_up_date TEXT,
-                notes TEXT
+                notes TEXT,
+                url TEXT
             )
             """
         )
+        # Migration for anyone who ran Stage 1 before the `url` column existed.
+        try:
+            db.execute("ALTER TABLE applications ADD COLUMN url TEXT")
+        except sqlite3.OperationalError:
+            pass  # column already exists
 
 
 @app.route("/")
@@ -61,8 +67,8 @@ def add():
     db.execute(
         """
         INSERT INTO applications
-            (company, role, source, sponsors_visa, status, date_applied, follow_up_date, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (company, role, source, sponsors_visa, status, date_applied, follow_up_date, notes, url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             request.form["company"].strip(),
@@ -73,6 +79,7 @@ def add():
             request.form.get("date_applied") or date.today().isoformat(),
             request.form.get("follow_up_date") or None,
             request.form.get("notes", "").strip(),
+            request.form.get("url", "").strip() or None,
         ),
     )
     db.commit()

@@ -1,9 +1,3 @@
-"""Sample module for practicing targeted reads.
-
-This file is intentionally longer than you'd want to paste into a chat.
-Try asking for just one piece of it.
-"""
-
 import csv
 import json
 import logging

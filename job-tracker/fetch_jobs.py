@@ -30,10 +30,23 @@ SOURCES = [
     {"company": "YipitData", "platform": "greenhouse", "token": "yipitdata"},
     {"company": "Messari", "platform": "greenhouse", "token": "messari"},
     {"company": "Alpaca", "platform": "greenhouse", "token": "alpaca"},
+    {"company": "Plaid", "platform": "lever", "token": "plaid"},
+    {"company": "Brex", "platform": "greenhouse", "token": "brex"},
+    {"company": "Public", "platform": "greenhouse", "token": "public"},
+    {"company": "Mercury", "platform": "greenhouse", "token": "mercury"},
+    {"company": "Wealthfront", "platform": "lever", "token": "wealthfront"},
+    {"company": "Anchorage Digital", "platform": "lever", "token": "anchorage"},
+    {"company": "Kraken", "platform": "lever", "token": "kraken"},
+    {"company": "Gemini", "platform": "greenhouse", "token": "gemini"},
+    {"company": "FalconX", "platform": "greenhouse", "token": "falconx"},
+    {"company": "Carta", "platform": "greenhouse", "token": "carta"},
+    {"company": "Coinbase", "platform": "greenhouse", "token": "coinbase"},
+    {"company": "DRW", "platform": "greenhouse", "token": "drweng"},
+    {"company": "Flow Traders", "platform": "greenhouse", "token": "flowtraders"},
 ]
 
 # Matched case-insensitively against each posting's title.
-KEYWORDS = ["trading", "sales", "quant", "analyst", "intern", "research", "associate"]
+KEYWORDS = ["trading", "trader", "sales", "quant", "analyst", "intern", "research", "associate"]
 
 REQUEST_TIMEOUT = 15
 

@@ -66,8 +66,14 @@ def index():
         """
     ).fetchall()
     today = date.today().isoformat()
+    counts = {
+        "total": len(rows),
+        "new_leads": sum(1 for r in rows if r["status"] == "New Lead"),
+        "interviewing": sum(1 for r in rows if r["status"] in ("OA / Assessment", "Interview")),
+        "offers": sum(1 for r in rows if r["status"] == "Offer"),
+    }
     return render_template(
-        "index.html", applications=rows, statuses=STATUSES, today=today
+        "index.html", applications=rows, statuses=STATUSES, today=today, counts=counts
     )
 
 

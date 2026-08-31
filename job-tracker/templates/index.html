@@ -2,111 +2,110 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Job Tracker</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
-    h1 { margin-bottom: 0.25rem; }
-    .subtitle { color: #666; margin-top: 0; }
-    form.add-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin: 1.5rem 0; padding: 1rem; background: #f6f6f6; border-radius: 8px; }
-    form.add-form label { display: flex; flex-direction: column; font-size: 0.85rem; color: #444; }
-    form.add-form input, form.add-form select, form.add-form textarea { padding: 0.4rem; font-size: 0.95rem; }
-    form.add-form .full { grid-column: 1 / -1; }
-    form.add-form button { grid-column: 1 / -1; padding: 0.6rem; background: #1a1a1a; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid #eee; font-size: 0.9rem; vertical-align: top; }
-    th { color: #666; font-weight: 600; }
-    tr.due-followup { background: #fff6e0; }
-    tr.new-lead { background: #eaf3ff; }
-    select.status { padding: 0.25rem; }
-    .score { font-variant-numeric: tabular-nums; font-weight: 600; color: #444; }
-    .del-btn { background: none; border: none; color: #b33; cursor: pointer; font-size: 0.85rem; }
-    .empty { color: #888; padding: 2rem 0; text-align: center; }
-  </style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>Job Application Tracker</h1>
-  <p class="subtitle">{{ applications|length }} tracked application{{ '' if applications|length == 1 else 's' }}</p>
+  <div class="wrap">
+    <header>
+      <h1>Job Application Tracker</h1>
+      <p class="tagline">Every application, every lead, ranked by fit — in one place.</p>
+      <div class="stats">
+        <div class="stat"><strong>{{ counts.total }}</strong><span>tracked</span></div>
+        <div class="stat"><strong>{{ counts.new_leads }}</strong><span>new leads</span></div>
+        <div class="stat"><strong>{{ counts.interviewing }}</strong><span>interviewing</span></div>
+        <div class="stat"><strong>{{ counts.offers }}</strong><span>offers</span></div>
+      </div>
+    </header>
 
-  <form class="add-form" action="{{ url_for('add') }}" method="post">
-    <label>Company
-      <input type="text" name="company" required>
-    </label>
-    <label>Role
-      <input type="text" name="role" required>
-    </label>
-    <label>Source
-      <input type="text" name="source" placeholder="e.g. Handshake, LinkedIn, referral">
-    </label>
-    <label>Sponsors visa?
-      <select name="sponsors_visa">
-        <option value="unknown">Unknown</option>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
-      </select>
-    </label>
-    <label>Status
-      <select name="status">
-        {% for s in statuses %}
-        <option value="{{ s }}" {{ 'selected' if s == 'Applied' else '' }}>{{ s }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>Date applied
-      <input type="date" name="date_applied">
-    </label>
-    <label>Follow up by
-      <input type="date" name="follow_up_date">
-    </label>
-    <label>Posting link
-      <input type="url" name="url" placeholder="https://...">
-    </label>
-    <label class="full">Notes
-      <textarea name="notes" rows="2"></textarea>
-    </label>
-    <button type="submit">Add application</button>
-  </form>
+    <form class="add-form card" action="{{ url_for('add') }}" method="post">
+      <label>Company
+        <input type="text" name="company" required>
+      </label>
+      <label>Role
+        <input type="text" name="role" required>
+      </label>
+      <label>Source
+        <input type="text" name="source" placeholder="e.g. Handshake, LinkedIn, referral">
+      </label>
+      <label>Sponsors visa?
+        <select name="sponsors_visa">
+          <option value="unknown">Unknown</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </label>
+      <label>Status
+        <select name="status">
+          {% for s in statuses %}
+          <option value="{{ s }}" {{ 'selected' if s == 'Applied' else '' }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Date applied
+        <input type="date" name="date_applied">
+      </label>
+      <label>Follow up by
+        <input type="date" name="follow_up_date">
+      </label>
+      <label>Posting link
+        <input type="url" name="url" placeholder="https://...">
+      </label>
+      <label class="full">Notes
+        <textarea name="notes" rows="2"></textarea>
+      </label>
+      <button type="submit">Add application</button>
+    </form>
 
-  {% if applications %}
-  <table>
-    <thead>
-      <tr>
-        <th>Score</th><th>Company</th><th>Role</th><th>Source</th><th>Visa</th><th>Status</th>
-        <th>Applied</th><th>Follow up</th><th>Notes</th><th>Link</th><th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for a in applications %}
-      {% set row_class = 'new-lead' if a.status == 'New Lead' else ('due-followup' if a.follow_up_date and a.follow_up_date <= today else '') %}
-      <tr class="{{ row_class }}">
-        <td class="score">{{ a.score if a.score is not none else '' }}</td>
-        <td>{{ a.company }}</td>
-        <td>{{ a.role }}</td>
-        <td>{{ a.source }}</td>
-        <td>{{ a.sponsors_visa }}</td>
-        <td>
-          <form action="{{ url_for('update_status', app_id=a.id) }}" method="post">
-            <select class="status" name="status" onchange="this.form.submit()">
-              {% for s in statuses %}
-              <option value="{{ s }}" {{ 'selected' if s == a.status else '' }}>{{ s }}</option>
-              {% endfor %}
-            </select>
-          </form>
-        </td>
-        <td>{{ a.date_applied or '' }}</td>
-        <td>{{ a.follow_up_date or '' }}</td>
-        <td>{{ a.notes or '' }}</td>
-        <td>{% if a.url %}<a href="{{ a.url }}" target="_blank" rel="noopener">view &#8599;</a>{% endif %}</td>
-        <td>
-          <form action="{{ url_for('delete', app_id=a.id) }}" method="post" onsubmit="return confirm('Delete this application?')">
-            <button class="del-btn" type="submit">delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="empty">No applications yet — add your first one above.</p>
-  {% endif %}
+    {% if applications %}
+    <div class="card table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Score</th><th>Company</th><th>Role</th><th>Source</th><th>Visa</th><th>Status</th>
+            <th>Applied</th><th>Follow up</th><th>Notes</th><th>Link</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in applications %}
+          {% set row_class = 'new-lead' if a.status == 'New Lead' else ('due-followup' if a.follow_up_date and a.follow_up_date <= today else '') %}
+          {% set score_class = 'score-high' if a.score is not none and a.score >= 7 else ('score-mid' if a.score is not none and a.score >= 3 else 'score-low') %}
+          <tr class="{{ row_class }}">
+            <td>{% if a.score is not none %}<span class="badge {{ score_class }}">{{ a.score }}</span>{% endif %}</td>
+            <td>{{ a.company }}</td>
+            <td>{{ a.role }}</td>
+            <td>{{ a.source }}</td>
+            <td><span class="pill visa-{{ a.sponsors_visa }}">{{ a.sponsors_visa }}</span></td>
+            <td>
+              <form action="{{ url_for('update_status', app_id=a.id) }}" method="post">
+                <select class="status" name="status" onchange="this.form.submit()">
+                  {% for s in statuses %}
+                  <option value="{{ s }}" {{ 'selected' if s == a.status else '' }}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+            <td>{{ a.date_applied or '' }}</td>
+            <td>{{ a.follow_up_date or '' }}</td>
+            <td class="notes-cell">{{ a.notes or '' }}</td>
+            <td>{% if a.url %}<a class="link" href="{{ a.url }}" target="_blank" rel="noopener">view &#8599;</a>{% endif %}</td>
+            <td>
+              <form action="{{ url_for('delete', app_id=a.id) }}" method="post" onsubmit="return confirm('Delete this application?')">
+                <button class="del-btn" type="submit">delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card">
+      <p class="empty">No applications yet — add your first one above.</p>
+    </div>
+    {% endif %}
+  </div>
 </body>
 </html>

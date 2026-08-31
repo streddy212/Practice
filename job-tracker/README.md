@@ -150,13 +150,25 @@ run.
 
 ## How it's built
 
-- `app.py` — the Flask server: routes for viewing, adding, updating status, and deleting applications; sorts New Leads to the top by score
-- `templates/index.html` — the page itself (a form + a table), using Jinja2 to loop over your data
+- `app.py` — the Flask server: routes for viewing, adding, updating status, and deleting applications; computes the stats bar and sorts New Leads to the top by score
+- `templates/index.html` — the page itself (stats bar, add-form, table), using Jinja2 to loop over your data
+- `static/style.css` — the design: CSS variables for color/spacing, automatic light/dark mode via `prefers-color-scheme`, score/visa badges, sticky table header
 - `fetch_jobs.py` — fetches postings, scores them, inserts new leads
 - `send_digest.py` — emails a digest of leads not yet notified about, then marks them sent
 - `run_fetch.sh` — wrapper for scheduled runs; runs both scripts, logs each run to `fetch_log.txt`
 - `.env` / `.env.example` — your email credentials (never committed) / the template for them
 - `tracker.db` / `fetch_log.txt` — your data and run history, stored locally (not committed to git)
+
+## Design
+
+The interface uses your OS's light/dark preference automatically (no
+toggle needed), color-codes score (green = strong match, amber = medium,
+gray = weak) and visa status (green/red/gray pills) so you can scan the
+table at a glance instead of reading every cell, and highlights rows that
+need attention — blue for a fresh lead, amber for one whose follow-up
+date has passed. Everything is plain CSS with no build step and no
+external requests (fonts, icons, etc. are all system-native), so the app
+works offline and loads instantly.
 
 ## What's next
 

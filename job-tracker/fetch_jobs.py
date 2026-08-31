@@ -25,12 +25,15 @@ from app import DB_PATH, init_db
 # Add the companies you actually want to watch. `platform` must be
 # "greenhouse" or "lever"; `token` is found as described above.
 SOURCES = [
-    # {"company": "Ramp", "platform": "lever", "token": "ramp"},
-    # {"company": "Coinbase", "platform": "greenhouse", "token": "coinbase"},
+    {"company": "Addepar", "platform": "greenhouse", "token": "addepar1"},
+    {"company": "iCapital Network", "platform": "greenhouse", "token": "icapitalnetwork"},
+    {"company": "YipitData", "platform": "greenhouse", "token": "yipitdata"},
+    {"company": "Messari", "platform": "greenhouse", "token": "messari"},
+    {"company": "Alpaca", "platform": "greenhouse", "token": "alpaca"},
 ]
 
 # Matched case-insensitively against each posting's title.
-KEYWORDS = ["trading", "sales", "quant", "analyst", "intern"]
+KEYWORDS = ["trading", "sales", "quant", "analyst", "intern", "research", "associate"]
 
 REQUEST_TIMEOUT = 15
 

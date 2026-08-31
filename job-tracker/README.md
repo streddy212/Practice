@@ -23,23 +23,28 @@ and Lever both publish free, no-login JSON APIs) and drops anything
 matching your keywords into the tracker as a "New Lead" row, highlighted
 in blue.
 
-1. Open `fetch_jobs.py` and add companies to `SOURCES`. To find a
-   company's token, visit their careers page:
-   - Greenhouse: `https://boards.greenhouse.io/<token>`
-   - Lever: `https://jobs.lever.co/<token>`
-   The last part of that URL is the token.
-2. Adjust `KEYWORDS` to match what you're looking for.
-3. Run it:
-   ```bash
-   python fetch_jobs.py
-   ```
-4. Refresh the tracker page — new matches show up as blue "New Lead" rows.
-   Running it again never creates duplicates (it checks the posting URL
-   first).
+`SOURCES` currently watches five real startups picked for fit with a
+finance/data background (wealth-tech, alt-data, crypto research, trading
+infra): Addepar, iCapital Network, YipitData, Messari, and Alpaca. Add
+more the same way — visit a company's careers page, and if the URL looks
+like:
+- Greenhouse: `https://boards.greenhouse.io/<token>`
+- Lever: `https://jobs.lever.co/<token>`
+the last part is the token.
 
-This sandbox's network is locked to package registries only, so the
-Greenhouse/Lever calls were verified against mocked responses shaped like
-the real API — run it for real from your own machine.
+Run it:
+```bash
+python fetch_jobs.py
+```
+Refresh the tracker page — new matches show up as blue "New Lead" rows.
+Running it again never creates duplicates (it checks the posting URL
+first).
+
+This sandbox's network is locked to package registries only, so the five
+tokens above were verified via web search (their real Greenhouse job-board
+URLs), and the fetch/parse/dedupe logic was verified against mocked
+responses shaped like the real API — but the live pull has to run from
+your own machine, where you have full internet access.
 
 ## How it's built
 

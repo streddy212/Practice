@@ -23,12 +23,17 @@ and Lever both publish free, no-login JSON APIs) and drops anything
 matching your keywords into the tracker as a "New Lead" row, highlighted
 in blue.
 
-`SOURCES` currently watches 18 real companies picked for fit with a
-finance/data background — wealth-tech (Addepar, iCapital, Wealthfront),
-alt-data (YipitData), fintech infra (Plaid, Brex, Mercury, Carta), and
-crypto/trading (Messari, Alpaca, Coinbase, Gemini, Kraken, Anchorage
-Digital, FalconX), plus two firms that run literal trading internships
-(DRW, Flow Traders). Add more the same way — visit a company's careers
+`SOURCES` currently watches 27 real companies across four functions:
+- **Finance/trading:** Addepar, iCapital, Wealthfront (wealth-tech); YipitData (alt-data);
+  Messari, Alpaca, Coinbase, Gemini, Kraken, Anchorage Digital, FalconX (crypto/trading);
+  DRW, Flow Traders (literal trading-internship programs); Plaid, Brex, Mercury, Carta,
+  Public (fintech infra)
+- **Marketing:** Chime, Webflow, Attentive, Allbirds, Warby Parker
+- **Operations:** Flexport, Faire, Robinhood
+- **Product:** Airtable, Robinhood
+
+(Some companies span more than one list — Robinhood posts both product and
+ops roles, for example.) Add more the same way — visit a company's careers
 page, and if the URL looks like:
 - Greenhouse: `https://boards.greenhouse.io/<token>`
 - Lever: `https://jobs.lever.co/<token>`

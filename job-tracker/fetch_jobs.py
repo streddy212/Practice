@@ -43,10 +43,23 @@ SOURCES = [
     {"company": "Coinbase", "platform": "greenhouse", "token": "coinbase"},
     {"company": "DRW", "platform": "greenhouse", "token": "drweng"},
     {"company": "Flow Traders", "platform": "greenhouse", "token": "flowtraders"},
+    # Marketing / Operations / Product
+    {"company": "Faire", "platform": "greenhouse", "token": "faire"},
+    {"company": "Webflow", "platform": "greenhouse", "token": "webflow"},
+    {"company": "Chime", "platform": "greenhouse", "token": "chime"},
+    {"company": "Allbirds", "platform": "greenhouse", "token": "allbirds"},
+    {"company": "Warby Parker", "platform": "greenhouse", "token": "warbyparker"},
+    {"company": "Flexport", "platform": "greenhouse", "token": "flexport"},
+    {"company": "Attentive", "platform": "greenhouse", "token": "attentive"},
+    {"company": "Airtable", "platform": "greenhouse", "token": "airtable"},
+    {"company": "Robinhood", "platform": "greenhouse", "token": "robinhood"},
 ]
 
 # Matched case-insensitively against each posting's title.
-KEYWORDS = ["trading", "trader", "sales", "quant", "analyst", "intern", "research", "associate"]
+KEYWORDS = [
+    "trading", "trader", "sales", "quant", "analyst", "intern", "research", "associate",
+    "marketing", "operations", "product manager", "growth", "strategy", "brand",
+]
 
 REQUEST_TIMEOUT = 15
 

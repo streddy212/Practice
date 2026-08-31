@@ -16,6 +16,7 @@ Some companies host their own careers page but still run it on Greenhouse
 or Lever under the hood -- check the page's network requests, or just try
 both platforms with the company's obvious token.
 """
+import re
 import sqlite3
 
 import requests
@@ -43,7 +44,7 @@ SOURCES = [
     {"company": "Messari", "platform": "greenhouse", "token": "messari"},
     {"company": "Alpaca", "platform": "greenhouse", "token": "alpaca"},
     {
-        "company": "Plaid", "platform": "lever", "token": "plaid", "sponsor_score": 3,
+        "company": "Plaid", "platform": "ashby", "token": "plaid", "sponsor_score": 3,
         "visa_note": "F-1 CPT/OPT explicitly accepted for the internship; company states no immigration (H-1B) sponsorship promised",
     },
     {
@@ -68,7 +69,9 @@ SOURCES = [
     {"company": "Faire", "platform": "greenhouse", "token": "faire"},
     {"company": "Webflow", "platform": "greenhouse", "token": "webflow"},
     {"company": "Chime", "platform": "greenhouse", "token": "chime"},
-    {"company": "Allbirds", "platform": "greenhouse", "token": "allbirds"},
+    # Allbirds removed: their Greenhouse API token now 404s even though the
+    # company still exists on Greenhouse -- couldn't find a working token,
+    # rather than guess and risk another broken source.
     {"company": "Warby Parker", "platform": "greenhouse", "token": "warbyparker"},
     {"company": "Flexport", "platform": "greenhouse", "token": "flexport"},
     {"company": "Attentive", "platform": "greenhouse", "token": "attentive"},
@@ -82,8 +85,32 @@ SOURCES = [
 # generic adjacent role.
 HIGH_PRIORITY_KEYWORDS = ["trading", "trader", "quant", "sales"]
 MEDIUM_PRIORITY_KEYWORDS = ["product manager", "marketing", "operations", "research", "strategy", "growth", "brand"]
-LOW_PRIORITY_KEYWORDS = ["analyst", "intern", "associate"]
+LOW_PRIORITY_KEYWORDS = ["analyst", "associate"]
+# Deliberately excludes "intern"/"internship" -- those are handled by
+# INTERNSHIP_KEYWORDS below as a separate hard requirement, not a function
+# match. If "intern" counted here too, a generic "Software Developer
+# Intern" would pass just for being an internship, regardless of function.
 KEYWORDS = HIGH_PRIORITY_KEYWORDS + MEDIUM_PRIORITY_KEYWORDS + LOW_PRIORITY_KEYWORDS
+
+# A title containing any of these is skipped outright, even if it also
+# matches a keyword above -- at a company with hundreds of open roles,
+# generic terms like "analyst" or "research" alone match plenty of senior
+# roles that aren't remotely what a student is looking for. Deliberately
+# doesn't include "manager" or "lead" since "Product Manager" and similar
+# entry-adjacent titles are things we actually want to keep.
+EXCLUDE_KEYWORDS = [
+    "senior", "staff", "principal", "director", "vice president",
+    "head of", "chief", "svp", "evp", "general manager",
+]
+# Checked separately as a whole word (regex \b) -- "vp" as a plain
+# substring would also match inside unrelated words, and as a padded
+# " vp " substring it misses "VP, Strategy" (comma right after).
+EXCLUDE_WORD_KEYWORDS = ["vp"]
+
+# Hard requirement: internships only, full-time roles excluded even if
+# they otherwise match a keyword above (e.g. "Lifecycle Marketing
+# Manager" is a real full-time role, not an internship, so it's dropped).
+INTERNSHIP_KEYWORDS = ["intern", "internship"]
 
 REQUEST_TIMEOUT = 15
 
@@ -108,11 +135,27 @@ def fetch_lever(token: str) -> list[dict]:
     ]
 
 
-FETCHERS = {"greenhouse": fetch_greenhouse, "lever": fetch_lever}
+def fetch_ashby(token: str) -> list[dict]:
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{token}"
+    resp = requests.get(url, timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    return [
+        {"title": job["title"], "url": job["jobUrl"]}
+        for job in resp.json().get("jobs", [])
+    ]
+
+
+FETCHERS = {"greenhouse": fetch_greenhouse, "lever": fetch_lever, "ashby": fetch_ashby}
 
 
 def matches_keywords(title: str) -> bool:
     title_lower = title.lower()
+    if not any(kw in title_lower for kw in INTERNSHIP_KEYWORDS):
+        return False
+    if any(kw in title_lower for kw in EXCLUDE_KEYWORDS):
+        return False
+    if any(re.search(rf"\b{re.escape(kw)}\b", title_lower) for kw in EXCLUDE_WORD_KEYWORDS):
+        return False
     return any(keyword.lower() in title_lower for keyword in KEYWORDS)
 
 

@@ -18,16 +18,18 @@ The first run creates `tracker.db` (a local SQLite database file) automatically.
 
 ## Pull in new leads (Stage 2)
 
-`fetch_jobs.py` checks a list of companies' public job boards (Greenhouse
-and Lever both publish free, no-login JSON APIs) and drops anything
+`fetch_jobs.py` checks a list of companies' public job boards (Greenhouse,
+Lever, and Ashby all publish free, no-login JSON APIs) and drops anything
 matching your keywords into the tracker as a "New Lead" row, highlighted
-in blue.
+in blue. **Internships only** — a title has to contain "intern" or
+"internship" to be considered at all (`INTERNSHIP_KEYWORDS`), on top of
+matching one of your target functions.
 
-`SOURCES` currently watches 26 real companies across four functions:
+`SOURCES` currently watches 25 real companies across four functions:
 - **Finance/trading:** Addepar, iCapital, Wealthfront (wealth-tech); YipitData (alt-data);
   Messari, Alpaca, Coinbase, Gemini, Kraken, Anchorage Digital, FalconX (crypto/trading);
   DRW (literal trading-internship program); Plaid, Brex, Mercury, Carta, Public (fintech infra)
-- **Marketing:** Chime, Webflow, Attentive, Allbirds, Warby Parker
+- **Marketing:** Chime, Webflow, Attentive, Warby Parker
 - **Operations:** Flexport, Faire, Robinhood
 - **Product:** Airtable, Robinhood
 
@@ -36,6 +38,7 @@ ops roles, for example.) Add more the same way — visit a company's careers
 page, and if the URL looks like:
 - Greenhouse: `https://boards.greenhouse.io/<token>`
 - Lever: `https://jobs.lever.co/<token>`
+- Ashby: `https://jobs.ashbyhq.com/<token>`
 the last part is the token.
 
 Run it:
@@ -48,10 +51,26 @@ first).
 
 This sandbox's network is locked to package registries only, so every
 token above was verified via web search against the company's real
-Greenhouse/Lever job-board URLs, and the fetch/parse/dedupe logic was
-verified against mocked responses shaped like the real API — but the live
-pull has to run from your own machine, where you have full internet
-access.
+job-board URLs, and the fetch/parse/dedupe/filter logic was verified
+against mocked responses shaped like the real APIs — but the live pull
+has to run from your own machine, where you have full internet access.
+Company career sites do change their ATS tokens occasionally (Plaid moved
+from Lever to Ashby, Allbirds' token stopped resolving entirely and was
+dropped rather than guessed at) — if a source starts printing `[skip]`
+consistently, its token may need re-checking the same way: visit the
+company's careers page and read the token off the URL.
+
+### Why "internships only" matters here
+
+Two keyword lists work together: `INTERNSHIP_KEYWORDS` is a hard
+requirement (the title must contain "intern"/"internship"), and the
+existing tiered keyword lists (trading, marketing, etc.) still have to
+match too — a generic "Software Developer Intern" at a fintech company
+is filtered out just as much as a full-time "Product Manager" would be,
+since it's an internship but not in one of your target functions.
+`EXCLUDE_KEYWORDS` (senior, staff, director, VP, chief, ...) is a second,
+mostly-redundant safety net now that internships are required, but stays
+in as a guard against edge cases.
 
 ### CPT/OPT/visa sponsorship — what's actually verified
 

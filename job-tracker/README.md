@@ -23,11 +23,10 @@ and Lever both publish free, no-login JSON APIs) and drops anything
 matching your keywords into the tracker as a "New Lead" row, highlighted
 in blue.
 
-`SOURCES` currently watches 27 real companies across four functions:
+`SOURCES` currently watches 26 real companies across four functions:
 - **Finance/trading:** Addepar, iCapital, Wealthfront (wealth-tech); YipitData (alt-data);
   Messari, Alpaca, Coinbase, Gemini, Kraken, Anchorage Digital, FalconX (crypto/trading);
-  DRW, Flow Traders (literal trading-internship programs); Plaid, Brex, Mercury, Carta,
-  Public (fintech infra)
+  DRW (literal trading-internship program); Plaid, Brex, Mercury, Carta, Public (fintech infra)
 - **Marketing:** Chime, Webflow, Attentive, Allbirds, Warby Parker
 - **Operations:** Flexport, Faire, Robinhood
 - **Product:** Airtable, Robinhood
@@ -53,6 +52,31 @@ Greenhouse/Lever job-board URLs, and the fetch/parse/dedupe logic was
 verified against mocked responses shaped like the real API — but the live
 pull has to run from your own machine, where you have full internet
 access.
+
+### CPT/OPT/visa sponsorship — what's actually verified
+
+Every new lead lands with a note in its Notes column about what's known
+regarding sponsorship, not just the job title:
+
+- **Plaid** — F-1 CPT/OPT explicitly accepted for the internship; the
+  company states no immigration (H-1B) sponsorship is promised beyond that
+- **Brex** — F-1 CPT/OPT explicitly accepted, international students
+  encouraged to apply; verified H-1B sponsor for full-time roles
+- **Coinbase** — internship visa sponsorship available for some roles,
+  subject to approval, covers the internship duration only
+- **Everyone else** — not verified. Web search could not surface reliable,
+  company-specific statements for the rest of this list (it mostly returns
+  generic OPT/CPT explainer articles, not each company's actual hiring
+  page). Absence of a note does **not** mean confirmed sponsor-friendly —
+  it means no explicit exclusion was found, so per the "avoid only on an
+  explicit no" rule it stayed in the list. Confirm directly before
+  investing real time in an application.
+
+One company was removed entirely: **Flow Traders** explicitly states on
+its own careers site that interns must already have the right to work in
+the internship's country — no visa sponsorship for interns (their
+full-time graduate program is different and does sponsor). That's a
+confirmed exclusion, not a guess.
 
 ## Make it run on its own
 

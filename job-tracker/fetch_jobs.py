@@ -24,14 +24,32 @@ from app import DB_PATH, init_db
 
 # Add the companies you actually want to watch. `platform` must be
 # "greenhouse" or "lever"; `token` is found as described above.
+#
+# Optional `visa_note`: what's actually known about CPT/OPT/visa
+# sponsorship for internships there, verified via web search against the
+# company's own careers content where possible. Sources with no explicit
+# information found fall back to DEFAULT_VISA_NOTE below -- absence of a
+# note does NOT mean confirmed sponsor-friendly, just that no explicit
+# exclusion was found. A company with a confirmed explicit "we do not
+# sponsor interns" statement is left out of this list entirely (Flow
+# Traders was removed for exactly this reason -- confirmed via their own
+# careers site: interns must already have the right to work in the US).
+DEFAULT_VISA_NOTE = "Not verified -- confirm CPT/OPT/sponsorship policy before applying"
+
 SOURCES = [
     {"company": "Addepar", "platform": "greenhouse", "token": "addepar1"},
     {"company": "iCapital Network", "platform": "greenhouse", "token": "icapitalnetwork"},
     {"company": "YipitData", "platform": "greenhouse", "token": "yipitdata"},
     {"company": "Messari", "platform": "greenhouse", "token": "messari"},
     {"company": "Alpaca", "platform": "greenhouse", "token": "alpaca"},
-    {"company": "Plaid", "platform": "lever", "token": "plaid"},
-    {"company": "Brex", "platform": "greenhouse", "token": "brex"},
+    {
+        "company": "Plaid", "platform": "lever", "token": "plaid",
+        "visa_note": "F-1 CPT/OPT explicitly accepted for the internship; company states no immigration (H-1B) sponsorship promised",
+    },
+    {
+        "company": "Brex", "platform": "greenhouse", "token": "brex",
+        "visa_note": "F-1 CPT/OPT explicitly accepted, international students encouraged to apply; verified H-1B sponsor for full-time roles",
+    },
     {"company": "Public", "platform": "greenhouse", "token": "public"},
     {"company": "Mercury", "platform": "greenhouse", "token": "mercury"},
     {"company": "Wealthfront", "platform": "lever", "token": "wealthfront"},
@@ -40,9 +58,12 @@ SOURCES = [
     {"company": "Gemini", "platform": "greenhouse", "token": "gemini"},
     {"company": "FalconX", "platform": "greenhouse", "token": "falconx"},
     {"company": "Carta", "platform": "greenhouse", "token": "carta"},
-    {"company": "Coinbase", "platform": "greenhouse", "token": "coinbase"},
+    {
+        "company": "Coinbase", "platform": "greenhouse", "token": "coinbase",
+        "visa_note": "Internship visa sponsorship available for some roles, subject to approval, covers internship duration only",
+    },
     {"company": "DRW", "platform": "greenhouse", "token": "drweng"},
-    {"company": "Flow Traders", "platform": "greenhouse", "token": "flowtraders"},
+    # Flow Traders removed: confirmed no visa sponsorship for interns.
     # Marketing / Operations / Product
     {"company": "Faire", "platform": "greenhouse", "token": "faire"},
     {"company": "Webflow", "platform": "greenhouse", "token": "webflow"},
@@ -117,15 +138,16 @@ def main() -> None:
         matched = [p for p in postings if matches_keywords(p["title"])]
         print(f"{source['company']}: {len(postings)} open roles, {len(matched)} match your keywords")
 
+        visa_note = source.get("visa_note", DEFAULT_VISA_NOTE)
         for posting in matched:
             if already_tracked(db, posting["url"]):
                 continue
             db.execute(
                 """
-                INSERT INTO applications (company, role, source, status, url)
-                VALUES (?, ?, ?, 'New Lead', ?)
+                INSERT INTO applications (company, role, source, status, url, notes)
+                VALUES (?, ?, ?, 'New Lead', ?, ?)
                 """,
-                (source["company"], posting["title"], f"{source['company']} ({source['platform']})", posting["url"]),
+                (source["company"], posting["title"], f"{source['company']} ({source['platform']})", posting["url"], visa_note),
             )
             added += 1
 
